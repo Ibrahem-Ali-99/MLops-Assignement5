@@ -1,9 +1,12 @@
 import mlflow
 import mlflow.sklearn
 import pandas as pd
+import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
 
 df = pd.read_csv("data/dataset.csv")
 X = df.iloc[:, :-1].values

@@ -5,11 +5,9 @@ on:
     branches: [main]
 
 jobs:
-
   validate:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -21,9 +19,16 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Start local MLflow server
+        run: |
+          mlflow server \
+            --host 127.0.0.1 \
+            --port 5000 \
+            --backend-store-uri sqlite:///mlflow.db \
+            --default-artifact-root ./mlartifacts &
+          sleep 5
+
       - name: Train model and log to MLflow
-        env:
-          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
         run: python train.py
 
       - name: Upload model_info.txt
@@ -32,11 +37,16 @@ jobs:
           name: model-info
           path: model_info.txt
 
+      - name: Upload MLflow database
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-db
+          path: mlflow.db
+
   deploy:
     needs: validate
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -46,16 +56,28 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install mlflow
+        run: pip install -r requirements.txt
 
       - name: Download model_info.txt
         uses: actions/download-artifact@v4
         with:
           name: model-info
 
+      - name: Download MLflow database
+        uses: actions/download-artifact@v4
+        with:
+          name: mlflow-db
+
+      - name: Start local MLflow server
+        run: |
+          mlflow server \
+            --host 127.0.0.1 \
+            --port 5000 \
+            --backend-store-uri sqlite:///mlflow.db \
+            --default-artifact-root ./mlartifacts &
+          sleep 5
+
       - name: Check accuracy threshold
-        env:
-          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
         run: python check_threshold.py
 
       - name: Mock Docker Build
