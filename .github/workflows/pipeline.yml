@@ -19,6 +19,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Install DVC
+        run: pip install dvc
+
+      - name: Pull data with DVC
+        run: |
+          dvc pull || echo "DVC remote not configured, using committed data"
+
       - name: Start local MLflow server
         run: |
           mlflow server \
