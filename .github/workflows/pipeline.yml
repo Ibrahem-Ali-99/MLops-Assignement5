@@ -23,8 +23,7 @@ jobs:
         run: pip install dvc
 
       - name: Pull data with DVC
-        run: |
-          dvc pull || echo "DVC remote not configured, using committed data"
+        run: dvc pull || echo "No DVC remote, using committed data"
 
       - name: Start local MLflow server
         run: |
@@ -36,6 +35,8 @@ jobs:
           sleep 5
 
       - name: Train model and log to MLflow
+        env:
+          MLFLOW_TRACKING_URI: http://127.0.0.1:5000
         run: python train.py
 
       - name: Upload model_info.txt
@@ -85,9 +86,9 @@ jobs:
           sleep 5
 
       - name: Check accuracy threshold
+        env:
+          MLFLOW_TRACKING_URI: http://127.0.0.1:5000
         run: python check_threshold.py
 
       - name: Mock Docker Build
-        run: |
-          RUN_ID=$(cat model_info.txt)
-          echo "Building Docker image for Run ID: $RUN_ID"
+        run: echo "Building Docker image for Run ID: $(cat model_info.txt)"

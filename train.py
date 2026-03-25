@@ -6,8 +6,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
-
 df = pd.read_csv("data/dataset.csv")
 X = df.iloc[:, :-1].values
 y = df.iloc[:, -1].values
@@ -16,10 +14,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
+accuracy = accuracy_score(y_test, model.predict(X_test))
 print(f"Accuracy: {accuracy:.4f}")
 
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
 mlflow.set_experiment("assignment-5")
 
 with mlflow.start_run() as run:
@@ -28,7 +26,9 @@ with mlflow.start_run() as run:
     mlflow.log_param("random_state", 42)
     mlflow.log_metric("accuracy", accuracy)
     mlflow.sklearn.log_model(model, "model")
-    print(f"MLflow Run ID: {run.info.run_id}")
-    with open("model_info.txt", "w") as f:
-        f.write(run.info.run_id)
-    print("Run ID saved to model_info.txt")
+    run_id = run.info.run_id
+    print(f"MLflow Run ID: {run_id}")
+
+with open("model_info.txt", "w") as f:
+    f.write(run_id)
+print("Run ID saved to model_info.txt")

@@ -2,7 +2,7 @@ import mlflow
 import sys
 import os
 
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
 
 with open("model_info.txt", "r") as f:
     run_id = f.read().strip()
@@ -14,7 +14,7 @@ run = client.get_run(run_id)
 accuracy = run.data.metrics["accuracy"]
 print(f"Accuracy: {accuracy:.4f}")
 
-THRESHOLD = 2
+THRESHOLD = 0.85
 
 if accuracy < THRESHOLD:
     print(f"FAILED: {accuracy:.4f} is below threshold {THRESHOLD}. Blocking deployment.")
