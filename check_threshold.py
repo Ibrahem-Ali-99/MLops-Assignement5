@@ -14,7 +14,7 @@ run = client.get_run(run_id)
 accuracy = run.data.metrics["accuracy"]
 print(f"Accuracy: {accuracy:.4f}")
 
-THRESHOLD = 0.85
+THRESHOLD = 2
 
 if accuracy < THRESHOLD:
     print(f"FAILED: {accuracy:.4f} is below threshold {THRESHOLD}. Blocking deployment.")
